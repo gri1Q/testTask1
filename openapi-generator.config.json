@@ -1,0 +1,23 @@
+{
+    "generatorName": "php-laravel",
+    "inputSpec": "./api-docs/index.yaml",
+    "outputDir": "./generated",
+    "additionalProperties": {
+        "packageName": "Generated",
+        "invokerPackage": "Generated",
+        "controllerPackage": "Generated\\Http\\Controllers",
+        "apiPackage": "Http\\Controllers",
+        "modelPackage": "DTO",
+        "routesPrefix": "api",
+        "formRequest": true,
+        "enumUnknownDefaultCase": true,
+        "modern": true,
+        "sortModelPropertiesByRequiredFlag": true,
+        "sortParamsByRequiredFlag": true
+    },
+    "templateDir": "./api-docs/templates/out",
+    "strictSpec": true,
+    "enablePostProcessFile": true,
+    "generateAliasAsModel": true,
+    "globalProperty": "apis,models,supportingFiles,modelDocs,apiDocs,modelTests,apiTests"
+}

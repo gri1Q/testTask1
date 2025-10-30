@@ -1,0 +1,210 @@
+openapi: 3.0.3
+info:
+  title: Example API
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:8000/api
+
+paths:
+  /auth/users:
+    post:
+      tags: [ Auth ]
+      operationId: registerUser
+      summary: Регистрация нового пользователя (Sanctum SPA)
+      description: >
+        Создаёт учётную запись и аутентифицирует пользователя сессией.
+
+      requestBody:
+        required: true
+        description: Тело запроса с учётными данными.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterUser'
+            examples:
+              valid:
+                summary: Корректный пример
+                value:
+                  name: "new_user_01"
+
+      responses:
+        '201':
+          description: Created — пользователь создан и аутентифицирован сессией.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+              examples:
+                created:
+                  summary: Успешная регистрация
+                  value:
+                    user:
+                      id: 1
+                      name: "new_user_01"
+        '400':
+          description: Validation Error — входные данные не прошли валидацию.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '419':
+          description: CSRF Token Mismatch — отсутствует или неверный `X-XSRF-TOKEN`/cookie.
+        '500':
+          description: Internal Server Error — непредвиденная ошибка на сервере.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
+  /auth/login:
+    post:
+      tags: [ Auth ]
+      operationId: loginUser
+      x-lg-middleware:
+        - web
+      summary: Вход пользователя (Sanctum SPA)
+      description: >
+        Аутентифицирует существующего пользователя и устанавливает cookie-сессию.
+      requestBody:
+        required: true
+        description: Учетные данные пользователя.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginUser'
+            examples:
+              valid:
+                summary: Корректный пример
+                value:
+                  name: "new_user_01"
+      responses:
+        '200':
+          description: OK — пользователь успешно аутентифицирован, cookie-сессия установлена.
+        '400':
+          description: Validation Error — входные данные не прошли валидацию.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              examples:
+                bad:
+                  value:
+                    errors:
+                      - field: name
+                        message: "Имя обязательно."
+        '419':
+          description: CSRF Token Mismatch — отсутствует или неверный `X-XSRF-TOKEN`/cookie.
+        '429':
+          description: Too Many Requests — превышен лимит попыток входа (если включён троттлинг).
+        '500':
+          description: Internal Server Error — непредвиденная ошибка на сервере.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - xsrfHeader: [ ]
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: laravel_session
+      description: >
+        Сессионная cookie Laravel (`laravel_session`). Устанавливается фреймворком.
+        Используется для stateful-аутентификации в SPA-потоке Sanctum.
+    xsrfHeader:
+      type: apiKey
+      in: header
+      name: X-XSRF-TOKEN
+      description: >
+        CSRF-токен, который должен совпадать со значением cookie `XSRF-TOKEN`
+        (после URL-decode). Обычно выставляется клиентом автоматически (например, Axios).
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    RegisterUser:
+      type: object
+      description: Тело запроса для регистрации нового пользователя.
+      required: [ name ]
+      properties:
+        name:
+          type: string
+          minLength: 6
+          maxLength: 255
+          description: >
+            Имя пользователя (логин). Минимум 6, максимум 255 символов. Должно быть уникальным.
+          example: "new_user_01"
+
+    RegisterResponse:
+      type: object
+      description: Ответ после успешной регистрации (без токена; аутентификация по cookie-сессии).
+      required: [ user ]
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      description: Базовая модель пользователя.
+      required: [ id, name ]
+      properties:
+        id:
+          type: integer
+          description: Уникальный идентификатор пользователя (int).
+          example: 1
+        name:
+          type: string
+          description: Уникальное имя пользователя (логин).
+          example: "new_user_01"
+
+    ValidationError:
+      type: object
+      description: Стандартизированный формат ошибки.
+      properties:
+        message:
+          type: string
+          nullable: true
+          description: Общее сообщение об ошибке. Обычно приходит или оно или errors.
+        errors:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/ValidationErrorItem'
+    ValidationErrorItem:
+      type: object
+      required: [ message ]
+      properties:
+        message:
+          type: string
+          description: Человеческое описание проблемы.
+          example: "Имя должно быть не короче 6 символов."
+        field:
+          type: string
+          description: Имя поля, к которому относится ошибка.
+          example: name
+
+    Error:
+      type: object
+      required: [ message ]
+      properties:
+        message:
+          type: string
+          description: Человеческое описание проблемы.
+          example: "Что то пошло не так."
+
+    LoginUser:
+      type: object
+      description: Тело запроса для входа пользователя.
+      required: [ name ]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Имя пользователя (логин).
+          example: "new_user_01"

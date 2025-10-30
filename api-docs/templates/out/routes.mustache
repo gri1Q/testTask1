@@ -1,0 +1,40 @@
+{{>php_file_header}}
+
+use Illuminate\Support\Facades\Route;
+
+{{#apiInfo}}
+{{#apis}}
+{{#operations}}
+{{#operation}}
+/**
+ * {{httpMethod}} {{operationId}}
+ * Summary: {{summary}}
+ * Notes: {{notes}}
+ */
+Route::{{httpMethod}}('{{{basePathWithoutHost}}}{{{path}}}', [\{{controllerPackage}}\{{controllerName}}::class, '{{operationId}}'])
+{{#vendorExtensions.x-lg-middleware}}
+    ->middleware(
+        {{#.}}'{{.}}'{{^-last}}, {{/-last}}{{/.}}
+    )
+{{/vendorExtensions.x-lg-middleware}}
+{{#hasAuthMethods}}
+  {{#authMethods}}
+    {{#isApiKey}}
+      {{#isKeyInCookie}}
+    ->middleware('auth:sanctum')
+      {{/isKeyInCookie}}
+    {{/isApiKey}}
+  {{/authMethods}}
+{{/hasAuthMethods}}
+{{#vendorExtensions.x-lg-policy}}
+    ->can('{{action}}', [{{{model}}}, '{{#param}}{{param}}{{/param}}{{^param}}id{{/param}}'])
+{{/vendorExtensions.x-lg-policy}}
+{{#vendorExtensions.x-lg-policy-action}}
+    ->can('{{vendorExtensions.x-lg-policy-action}}', [{{{vendorExtensions.x-lg-policy-model}}}, '{{#vendorExtensions.x-lg-policy-param}}{{vendorExtensions.x-lg-policy-param}}{{/vendorExtensions.x-lg-policy-param}}{{^vendorExtensions.x-lg-policy-param}}id{{/vendorExtensions.x-lg-policy-param}}'])
+{{/vendorExtensions.x-lg-policy-action}}
+->name('{{vendorExtensions.x-lg-route-name}}');
+
+{{/operation}}
+{{/operations}}
+{{/apis}}
+{{/apiInfo}}

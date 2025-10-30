@@ -1,0 +1,17 @@
+.gitignore
+DTO/Error.php
+DTO/LoginUser.php
+DTO/NoContent200.php
+DTO/NoContent419.php
+DTO/NoContent429.php
+DTO/RegisterResponse.php
+DTO/RegisterUser.php
+DTO/User.php
+DTO/ValidationError.php
+DTO/ValidationErrorItem.php
+Http/Controllers/AuthApiInterface.php
+Http/Controllers/AuthController.php
+README.md
+composer.json
+phpunit.xml.dist
+routes.php
