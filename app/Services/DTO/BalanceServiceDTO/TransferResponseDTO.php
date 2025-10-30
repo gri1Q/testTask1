@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\DTO\BalanceServiceDTO;
 
 use App\Services\DTO\TransactionServiceDTO\CreateTransferTransactionResponseDTO;
+
 /**
  * DTO для ответа при переводе средств между пользователями
  *
@@ -26,7 +27,8 @@ readonly class TransferResponseDTO
         public float $amount,
         public string $message,
         public CreateTransferTransactionResponseDTO $transferData
-    ) {}
+    ) {
+    }
 
     public function toArray(): array
     {

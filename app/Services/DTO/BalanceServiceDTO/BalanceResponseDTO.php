@@ -7,9 +7,8 @@ namespace App\Services\DTO\BalanceServiceDTO;
 /**
  * DTO для ответа при получении баланса пользователя.
  *
- * @property-read int $userId
- * @property-read float $balance
- * @property-read string $currency
+ * @property int $userId
+ * @property float $balance
  */
 readonly class BalanceResponseDTO
 {

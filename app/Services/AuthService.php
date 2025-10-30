@@ -11,6 +11,7 @@ use Generated\DTO\User as GenUserDTO;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Throwable;
+
 /**
  * Сервис для
  */
@@ -65,7 +66,7 @@ class AuthService
      */
     public function getUserByName(LoginUser $loginUser): GenUserDTO
     {
-       $user= $this->userRepository->findByName($loginUser->name);
+        $user = $this->userRepository->findByName($loginUser->name);
 
         return new GenUserDTO($user->id, $user->name);
     }
