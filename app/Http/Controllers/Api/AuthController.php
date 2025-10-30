@@ -56,6 +56,12 @@ class AuthController extends Controller implements AuthApiInterface
         return new RegisterResponse($user);
     }
 
+    /**
+     * Вход пользователя.
+     *
+     * @param LoginUser $loginUser
+     * @return NoContent200|ValidationError|NoContent419|NoContent429|Error
+     */
     public function loginUser(LoginUser $loginUser): NoContent200|ValidationError|NoContent419|NoContent429|Error
     {
         $ve = $this->validateOrNull([
@@ -80,6 +86,7 @@ class AuthController extends Controller implements AuthApiInterface
             return new Error($e->getMessage());
         } catch (\Exception $e) {
             report($e);
+
             return new Error("Что-то пошло не так при логине");
         }
     }
