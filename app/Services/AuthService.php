@@ -56,4 +56,17 @@ class AuthService
         Auth::login($user);
         request()->session()->regenerate();
     }
+
+    /**
+     * Получить пользователя по имени.
+     *
+     * @param LoginUser $loginUser
+     * @return GenUserDTO
+     */
+    public function getUserByName(LoginUser $loginUser): GenUserDTO
+    {
+       $user= $this->userRepository->findByName($loginUser->name);
+
+        return new GenUserDTO($user->id, $user->name);
+    }
 }

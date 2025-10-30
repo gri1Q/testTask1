@@ -6,7 +6,7 @@ namespace App\Exceptions;
 
 use Exception;
 
-class InvalidCredentialsException extends Exception
+class InsufficientFundsException extends Exception
 {
     //
 }

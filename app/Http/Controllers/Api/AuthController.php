@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api;
 
 use App\Exceptions\InvalidCredentialsException;
@@ -18,6 +20,7 @@ use Generated\DTO\ValidationErrorItem;
 use Generated\Http\Controllers\AuthApiInterface;
 use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class AuthController extends Controller implements AuthApiInterface
 {
@@ -30,6 +33,7 @@ class AuthController extends Controller implements AuthApiInterface
      *
      * @param RegisterUser $registerUser
      * @return RegisterResponse|ValidationError|NoContent419|Error
+     * @throws Throwable
      */
     public function registerUser(RegisterUser $registerUser,
     ): RegisterResponse|ValidationError|NoContent419|Error {
