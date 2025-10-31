@@ -25,7 +25,6 @@ paths:
                 summary: Корректный пример
                 value:
                   amount: 100.00
-                  comment: "Оплата услуги"
       responses:
         '200':
           description: OK — средства успешно списаны
@@ -42,7 +41,7 @@ paths:
         '401':
           description: Unauthorized — пользователь не аутентифицирован.
         '409':
-          description: Conflict — не достаточно средств .
+          description: Conflict — не достаточно средств.
         '419':
           description: CSRF Token Mismatch
         '500':
@@ -334,11 +333,6 @@ components:
           minimum: 0.01
           description: Сумма списания
           example: 100.00
-        comment:
-          type: string
-          maxLength: 255
-          description: Комментарий к списанию
-          example: "Оплата услуги"
 
     WithdrawResponse:
       type: object

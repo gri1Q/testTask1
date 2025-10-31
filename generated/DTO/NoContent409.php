@@ -19,28 +19,28 @@
 
 
 /**
- * WithdrawRequest
+ * NoContent409
  */
 namespace Generated\DTO;
 
 /**
- * WithdrawRequest
- * @description Запрос на списание средств
+ * NoContent409
+ * @description No content for 409
  */
 use Crell\Serde\Renaming\Cases;
 use Crell\Serde\Attributes as Serde;
 
 #[Serde\ClassSettings(renameWith: Cases::snake_case)]
-class WithdrawRequest
+class NoContent409
 {
     /**
     *
-    * Сумма списания
-    * @param float $amount
+    * dummy property for no-content responses
+    * @param null | string $dummy
     */
 
    public function __construct(
-       public float $amount,
+       public ?string $dummy = null,
    ) {}
 }
 

@@ -11,6 +11,7 @@ use Generated\DTO\Error;
 use Generated\DTO\NoContent401;
 use Generated\DTO\NoContent403;
 use Generated\DTO\NoContent404;
+use Generated\DTO\NoContent409;
 use Generated\DTO\NoContent419;
 use Generated\DTO\ValidationError;
 use Generated\DTO\ValidationErrorItem;
@@ -56,16 +57,12 @@ class BalanceController extends Controller implements BalanceApiInterface
     ): DepositResponse|ValidationError|NoContent401|NoContent419|Error {
         $ve = $this->validateOrNull([
             'amount' => $depositRequest->amount,
-            'comment' => $depositRequest->comment ?? '',
         ], [
             'amount' => ['required', 'numeric', 'min:0.01'],
-            'comment' => ['nullable', 'string', 'max:255'],
         ], [
             'amount.required' => 'Сумма пополнения обязательна',
             'amount.numeric' => 'Сумма должна быть числом',
             'amount.min' => 'Минимальная сумма пополнения: 0.01',
-            'comment.string' => 'Комментарий должен быть строкой',
-            'comment.max' => 'Комментарий не должен превышать 255 символов',
         ]);
 
         if ($ve !== null) {
@@ -96,53 +93,6 @@ class BalanceController extends Controller implements BalanceApiInterface
         );
     }
 
-
-    public function withdraw(WithdrawRequest $withdrawRequest,
-    ): WithdrawResponse|ValidationError|NoContent401|NoContent419|Error {
-        $ve = $this->validateOrNull([
-            'amount' => $withdrawRequest->amount,
-            'comment' => $withdrawRequest->comment ?? '',
-        ], [
-            'amount' => ['required', 'numeric', 'min:0.01'],
-            'comment' => ['nullable', 'string', 'max:255'],
-        ], [
-            'amount.required' => 'Сумма списания обязательна',
-            'amount.numeric' => 'Сумма должна быть числом',
-            'amount.min' => 'Минимальная сумма списания: 0.01',
-            'comment.string' => 'Комментарий должен быть строкой',
-            'comment.max' => 'Комментарий не должен превышать 255 символов',
-        ]);
-
-        if ($ve !== null) {
-            return $ve;
-        }
-
-        if (!Auth::check()) {
-            return new NoContent401();
-        }
-
-        try {
-            $userId = Auth::id();
-
-            $withdrawDTO = $this->balanceService->withdraw(
-                $userId,
-                $withdrawRequest->amount,
-            );
-        } catch (InsufficientFundsException $e) {
-
-
-        } catch (Throwable $e) {
-            report($e);
-            return new Error("Что то пошло не так");
-        }
-
-        return new WithdrawResponse(
-            $withdrawDTO->userID,
-            $withdrawDTO->newBalance,
-            $withdrawDTO->amount,
-            $withdrawDTO->message
-        );
-    }
 
     /**
      * Валидирует данные и возвращает ошибку или null.
@@ -180,4 +130,46 @@ class BalanceController extends Controller implements BalanceApiInterface
         return new ValidationError(null, $errorItems);
     }
 
+    public function withdraw(WithdrawRequest $withdrawRequest,
+    ): WithdrawResponse|ValidationError|NoContent401|NoContent409|NoContent419|Error {
+        $ve = $this->validateOrNull([
+            'amount' => $withdrawRequest->amount,
+        ], [
+            'amount' => ['required', 'numeric', 'min:0.01'],
+        ], [
+            'amount.required' => 'Сумма списания обязательна',
+            'amount.numeric' => 'Сумма должна быть числом',
+            'amount.min' => 'Минимальная сумма списания: 0.01',
+        ]);
+
+        if ($ve !== null) {
+            return $ve;
+        }
+
+        if (!Auth::check()) {
+            return new NoContent401();
+        }
+
+        try {
+            $userId = Auth::id();
+
+            $withdrawDTO = $this->balanceService->withdraw(
+                $userId,
+                $withdrawRequest->amount,
+            );
+        } catch (InsufficientFundsException $e) {
+            return new NoContent409("Недостаточно средств");
+        } catch (Throwable $e) {
+            report($e);
+            return new Error($e->getMessage());
+//            return new Error("Что то пошло не так");
+        }
+
+        return new WithdrawResponse(
+            $withdrawDTO->userID,
+            $withdrawDTO->newBalance,
+            $withdrawDTO->amount,
+            $withdrawDTO->message
+        );
+    }
 }

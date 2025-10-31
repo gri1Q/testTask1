@@ -85,7 +85,7 @@ class TransactionService
             $transaction->id,
             $transaction->user_id,
             $transaction->type,
-            $transaction->amount,
+            (float)$transaction->amount,
             $transaction->created_at->toDateString()
         );
     }
