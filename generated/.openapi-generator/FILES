@@ -13,6 +13,8 @@ DTO/NoContent419.php
 DTO/NoContent429.php
 DTO/RegisterResponse.php
 DTO/RegisterUser.php
+DTO/TransferRequest.php
+DTO/TransferResponse.php
 DTO/User.php
 DTO/ValidationError.php
 DTO/ValidationErrorItem.php

@@ -6,6 +6,58 @@ servers:
   - url: http://127.0.0.1:8000/api
 
 paths:
+  /transfer:
+    post:
+      tags: [ Balance ]
+      operationId: transfer
+      summary: Перевод средств между пользователями
+      description: >
+        Перевод средств с баланса текущего пользователя на баланс другого пользователя.
+      requestBody:
+        required: true
+        description: Данные для перевода средств
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+            examples:
+              valid:
+                summary: Корректный пример
+                value:
+                  to_user_id: 2
+                  amount: 50.00
+                  comment: "Я тебе перевел деньги за..."
+      responses:
+        '200':
+          description: OK — перевод успешно выполнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        '400':
+          description: Validation Error — входные данные не прошли валидацию.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Unauthorized — пользователь не аутентифицирован.
+        '404':
+          description: Not Found — пользователь не найден.
+        '409':
+          description: Conflict — не достаточно средств.
+        '419':
+          description: CSRF Token Mismatch
+        '500':
+          description: Internal Server Error — непредвиденная ошибка на сервере.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+          xsrfHeader: []
+
   /withdraw:
     post:
       tags: [ Balance ]
@@ -107,6 +159,10 @@ paths:
       summary: Баланс пользователя.
       description: >
         Получить баланс пользователя.
+      x-lg-policy:
+        action: get
+        model: '\App\Models\User::class'
+        param: userID
       parameters:
         - name: userID
           in: path
@@ -287,6 +343,56 @@ components:
           type: string
           description: Уникальное имя пользователя (логин).
           example: "new_user_01"
+
+    TransferRequest:
+      type: object
+      description: Запрос на перевод средств
+      required: [ to_user_id, amount ]
+      properties:
+        to_user_id:
+          type: integer
+          description: ID пользователя-получателя
+          example: 2
+        amount:
+          type: number
+          format: float
+          minimum: 0.01
+          description: Сумма перевода
+          example: 50.00
+        comment:
+          type: string
+          description: Комментарий к переводу
+          example: "За обед"
+
+    TransferResponse:
+      type: object
+      description: Ответ после успешного перевода
+      required: [ from_user_id, to_user_id, from_user_balance, to_user_balance, amount, message ]
+      properties:
+        from_user_id:
+          type: integer
+          example: 1
+        to_user_id:
+          type: integer
+          example: 2
+        from_user_balance:
+          type: number
+          format: float
+          description: Баланс отправителя после перевода
+          example: 350.00
+        to_user_balance:
+          type: number
+          format: float
+          description: Баланс получателя после перевода
+          example: 150.00
+        amount:
+          type: number
+          format: float
+          description: Сумма перевода
+          example: 50.00
+        message:
+          type: string
+          example: "Перевод успешно выполнен"
 
     DepositRequest:
       type: object

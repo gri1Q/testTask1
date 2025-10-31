@@ -55,6 +55,16 @@ Route::POST('/api/deposit', [\Generated\Http\Controllers\BalanceController::clas
  */
 Route::GET('/api/balance/{userID}', [\Generated\Http\Controllers\BalanceController::class, 'getBalance'])
     ->middleware(['web','auth:sanctum'])
+    ->can('get', [\App\Models\User::class, 'userID'])
+->name('');
+
+/**
+ * POST transfer
+ * Summary: Перевод средств между пользователями
+ * Notes: Перевод средств с баланса текущего пользователя на баланс другого пользователя.
+ */
+Route::POST('/api/transfer', [\Generated\Http\Controllers\BalanceController::class, 'transfer'])
+    ->middleware(['web','auth:sanctum'])
 ->name('');
 
 /**

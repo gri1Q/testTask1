@@ -159,6 +159,71 @@ class BalanceController extends Controller
         return response()->abort(500);
     }
     /**
+     * Operation transfer
+     *
+     * Перевод средств между пользователями.
+     *
+     */
+    public function transfer(Request $request): JsonResponse
+    {
+        $validator = Validator::make(
+            array_merge(
+                [
+                    
+                ],
+                $request->all(),
+            ),
+            [
+            ],
+        );
+
+        if ($validator->fails()) {
+            return response()->json(['error' => 'Invalid input'], 400);
+        }
+
+        $transferRequest = $this->serde->deserialize($request->getContent(), from: 'json', to: \Generated\DTO\TransferRequest::class);
+
+        try {
+            $apiResult = $this->api->transfer($transferRequest);
+        } catch (\Exception $exception) {
+            // This shouldn't happen
+            report($exception);
+            return response()->json(['error' => $exception->getMessage()], 500);
+        }
+
+        if ($apiResult instanceof \Generated\DTO\TransferResponse) {
+            return response()->json($this->serde->serialize($apiResult, format: 'array'), 200);
+        }
+
+        if ($apiResult instanceof \Generated\DTO\ValidationError) {
+            return response()->json($this->serde->serialize($apiResult, format: 'array'), 400);
+        }
+
+        if ($apiResult instanceof \Generated\DTO\NoContent401) {
+            return response()->json($this->serde->serialize($apiResult, format: 'array'), 401);
+        }
+
+        if ($apiResult instanceof \Generated\DTO\NoContent404) {
+            return response()->json($this->serde->serialize($apiResult, format: 'array'), 404);
+        }
+
+        if ($apiResult instanceof \Generated\DTO\NoContent409) {
+            return response()->json($this->serde->serialize($apiResult, format: 'array'), 409);
+        }
+
+        if ($apiResult instanceof \Generated\DTO\NoContent419) {
+            return response()->json($this->serde->serialize($apiResult, format: 'array'), 419);
+        }
+
+        if ($apiResult instanceof \Generated\DTO\Error) {
+            return response()->json($this->serde->serialize($apiResult, format: 'array'), 500);
+        }
+
+
+        // This shouldn't happen
+        return response()->abort(500);
+    }
+    /**
      * Operation withdraw
      *
      * Списание средств с баланса пользователя.

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\TransactionStatusEnum;
-use App\Exceptions\InsufficientFundsException;
 use App\Models\Transaction;
 use App\Models\Transfer;
 use App\Repositories\TransactionRepository\TransactionRepositoryInterface;
@@ -107,77 +106,73 @@ class TransactionService
         float $amount,
         ?string $comment = null
     ): CreateTransferTransactionResponseDTO {
-        try {
-            // Создаем перевод
-            $transfer = new Transfer();
-            $transfer->from_user_id = $fromUserId;
-            $transfer->to_user_id = $toUserId;
-            $transfer->amount = $amount;
-            $transfer->comment = $comment;
-            $transfer = $this->transferRepository->create($transfer);
+        $transfer = new Transfer();
+        $transfer->from_user_id = $fromUserId;
+        $transfer->to_user_id = $toUserId;
+        $transfer->amount = $amount;
+        $transfer->comment = $comment;
+        $transfer = $this->transferRepository->create($transfer);
 
-            // Создаем обе транзакции
-            $transactionsData = [
-                [
-                    'user_id' => $fromUserId,
-                    'type' => TransactionStatusEnum::TRANSFER_OUT->value,
-                    'amount' => $amount,
-                    'transfer_id' => $transfer->id,
-                    'comment' => $comment,
-                ],
-                [
-                    'user_id' => $toUserId,
-                    'type' => TransactionStatusEnum::TRANSFER_IN->value,
-                    'amount' => $amount,
-                    'transfer_id' => $transfer->id,
-                    'comment' => $comment,
-                ]
-            ];
+        $now = now();
+        // Создаем обе транзакции
+        $transactionsData = [
+            [
+                'user_id' => $fromUserId,
+                'type' => TransactionStatusEnum::TRANSFER_OUT->value,
+                'amount' => $amount,
+                'transfer_id' => $transfer->id,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'user_id' => $toUserId,
+                'type' => TransactionStatusEnum::TRANSFER_IN->value,
+                'amount' => $amount,
+                'transfer_id' => $transfer->id,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]
+        ];
 
-            $this->transactionRepository->createMultiple($transactionsData);
+        $this->transactionRepository->createMultiple($transactionsData);
 
-            // Получаем созданные транзакции через репозиторий
-            $outgoingTransaction = $this->transactionRepository->getOutgoingTransferTransaction(
-                $transfer->id,
-                $fromUserId
-            );
-            $incomingTransaction = $this->transactionRepository->getIncomingTransferTransaction(
-                $transfer->id,
-                $toUserId
-            );
-        } catch (Throwable $e) {
-            throw new InsufficientFundsException($e->getMessage());
-        }
+        // Получаем созданные транзакции через репозиторий
+        $outgoingTransaction = $this->transactionRepository->getOutgoingTransferTransaction(
+            $transfer->id,
+            $fromUserId
+        );
+        $incomingTransaction = $this->transactionRepository->getIncomingTransferTransaction(
+            $transfer->id,
+            $toUserId
+        );
 
         $outgoingTransactionDTO = new TransactionDTO(
-            id: $outgoingTransaction->id,
-            userID: $outgoingTransaction->user_id,
-            type: $outgoingTransaction->type,
-            amount: $outgoingTransaction->amount,
-            comment: $outgoingTransaction->comment,
-            createdAt: $outgoingTransaction->created_at->toDateString(),
-            transferId: $outgoingTransaction->transfer_id
+            $outgoingTransaction->id,
+            $outgoingTransaction->user_id,
+            $outgoingTransaction->type,
+            (float)$outgoingTransaction->amount,
+            $outgoingTransaction->created_at->toDateString(),
+            $outgoingTransaction->transfer_id
         );
 
         $incomingTransactionDTO = new TransactionDTO(
-            id: $incomingTransaction->id,
-            userID: $incomingTransaction->user_id,
-            type: $incomingTransaction->type,
-            amount: $incomingTransaction->amount,
-            comment: $incomingTransaction->comment,
-            createdAt: $incomingTransaction->created_at->toDateString(),
-            transferId: $incomingTransaction->transfer_id
+            $incomingTransaction->id,
+            $incomingTransaction->user_id,
+            $incomingTransaction->type,
+            (float)$incomingTransaction->amount,
+            $incomingTransaction->created_at->toDateString(),
+            $incomingTransaction->transfer_id
         );
 
         return new CreateTransferTransactionResponseDTO(
-            transferId: $transfer->id,
-            fromUserId: $transfer->from_user_id,
-            toUserId: $transfer->to_user_id,
-            amount: $transfer->amount,
-            comment: $transfer->comment,
-            transferCreatedAt: $transfer->created_at->toDateString(),
-            outgoingTransaction: $outgoingTransactionDTO,
-            incomingTransaction: $incomingTransactionDTO
+            $transfer->id,
+            $transfer->from_user_id,
+            $transfer->to_user_id,
+            (float)$transfer->amount,
+            $transfer->comment,
+            $transfer->created_at->toDateString(),
+            $outgoingTransactionDTO,
+            $incomingTransactionDTO
         );
     }
 
