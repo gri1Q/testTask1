@@ -8,9 +8,13 @@ docker compose -f .\docker-compose.yml up --build
 docker compose exec php-fpm bash
 # внутри контейнера:
 composer install
+
 php artisan config:clear
+
 php artisan cache:clear
+
 php artisan optimize:clear
+
 php artisan migrate
 
 
