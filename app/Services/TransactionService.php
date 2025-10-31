@@ -42,27 +42,23 @@ class TransactionService
      *
      * @param int $userId
      * @param float $amount
-     * @param string|null $comment
      * @return CreateDepositTransactionResponseDTO
      */
     public function createDepositTransaction(
         int $userId,
         float $amount,
-        ?string $comment = null
     ): CreateDepositTransactionResponseDTO {
         $transaction = $this->createTransaction([
             'user_id' => $userId,
             'type' => TransactionStatusEnum::DEPOSIT->value,
             'amount' => $amount,
-            'comment' => $comment,
         ]);
 
         return new CreateDepositTransactionResponseDTO(
             $transaction->id,
             $transaction->user_id,
             $transaction->type,
-            $transaction->amount,
-            $comment,
+            (float)$transaction->amount,
             $transaction->created_at->toDateString()
         );
     }
@@ -85,7 +81,6 @@ class TransactionService
             'user_id' => $userId,
             'type' => TransactionStatusEnum::WITHDRAW->value,
             'amount' => $amount,
-            'comment' => $comment,
         ]);
 
         return new CreateWithdrawTransactionResponseDTO(

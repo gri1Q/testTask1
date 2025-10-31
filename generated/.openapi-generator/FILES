@@ -1,7 +1,13 @@
 .gitignore
+DTO/BalanceResponse.php
+DTO/DepositRequest.php
+DTO/DepositResponse.php
 DTO/Error.php
 DTO/LoginUser.php
 DTO/NoContent200.php
+DTO/NoContent401.php
+DTO/NoContent403.php
+DTO/NoContent404.php
 DTO/NoContent419.php
 DTO/NoContent429.php
 DTO/RegisterResponse.php
@@ -11,6 +17,8 @@ DTO/ValidationError.php
 DTO/ValidationErrorItem.php
 Http/Controllers/AuthApiInterface.php
 Http/Controllers/AuthController.php
+Http/Controllers/BalanceApiInterface.php
+Http/Controllers/BalanceController.php
 README.md
 composer.json
 phpunit.xml.dist

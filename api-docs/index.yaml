@@ -6,6 +6,90 @@ servers:
   - url: http://127.0.0.1:8000/api
 
 paths:
+  /deposit:
+    post:
+      tags: [ Balance ]
+      operationId: deposit
+      summary: Пополнение баланса пользователя
+      description: >
+        Зачисление средств на баланс пользователя.
+      requestBody:
+        required: true
+        description: Данные для пополнения баланса
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepositRequest'
+            examples:
+              valid:
+                summary: Корректный пример
+                value:
+                  amount: 500.00
+      responses:
+        '200':
+          description: OK — средства успешно зачислены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepositResponse'
+        '400':
+          description: Validation Error — входные данные не прошли валидацию.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Unauthorized — пользователь не аутентифицирован.
+        '419':
+          description: CSRF Token Mismatch
+        '500':
+          description: Internal Server Error — непредвиденная ошибка на сервере.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+          xsrfHeader: []
+
+  /balance/{userID}:
+    get:
+      tags: [ Balance ]
+      operationId: getBalance
+      summary: Баланс пользователя.
+      description: >
+        Получить баланс пользователя.
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          description: Идентификатор пользователя
+          schema:
+            type: integer
+          example: 1
+      responses:
+        '200':
+          description: OK — баланс получен.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        '403':
+          description: Forbidden — нет доступа.
+        '404':
+          description: Not Found — пользователь не найден.
+        '419':
+          description: CSRF Token Mismatch — отсутствует или неверный `X-XSRF-TOKEN`/cookie.
+        '500':
+          description: Internal Server Error — непредвиденная ошибка на сервере.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+          xsrfHeader: []
+
   /auth/users:
     post:
       tags: [ Auth ]
@@ -13,7 +97,6 @@ paths:
       summary: Регистрация нового пользователя (Sanctum SPA)
       description: >
         Создаёт учётную запись и аутентифицирует пользователя сессией.
-
       requestBody:
         required: true
         description: Тело запроса с учётными данными.
@@ -26,7 +109,6 @@ paths:
                 summary: Корректный пример
                 value:
                   name: "new_user_01"
-
       responses:
         '201':
           description: Created — пользователь создан и аутентифицирован сессией.
@@ -55,7 +137,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-
 
   /auth/login:
     post:
@@ -104,7 +185,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       security:
-        - xsrfHeader: [ ]
+        - xsrfHeader: []
 
 components:
   securitySchemes:
@@ -122,9 +203,6 @@ components:
       description: >
         CSRF-токен, который должен совпадать со значением cookie `XSRF-TOKEN`
         (после URL-decode). Обычно выставляется клиентом автоматически (например, Axios).
-    bearerAuth:
-      type: http
-      scheme: bearer
 
   schemas:
     RegisterUser:
@@ -161,6 +239,53 @@ components:
           type: string
           description: Уникальное имя пользователя (логин).
           example: "new_user_01"
+
+    DepositRequest:
+      type: object
+      description: Запрос на пополнение баланса
+      required: [ amount ]
+      properties:
+        amount:
+          type: number
+          format: float
+          minimum: 0.01
+          description: Сумма пополнения
+          example: 500.00
+
+    DepositResponse:
+      type: object
+      description: Ответ после успешного пополнения
+      required: [ user_id, balance, amount, message ]
+      properties:
+        user_id:
+          type: integer
+          example: 1
+        balance:
+          type: number
+          format: float
+          description: Текущий баланс после операции
+          example: 500.00
+        amount:
+          type: number
+          format: float
+          description: Сумма пополнения
+          example: 500.00
+        message:
+          type: string
+          example: "Баланс успешно пополнен"
+
+    BalanceResponse:
+      type: object
+      description: Модель баланса.
+      required: [user_id, balance]
+      properties:
+        user_id:
+          type: integer
+          example: 1
+        balance:
+          type: number
+          format: float
+          example: 350.00
 
     ValidationError:
       type: object

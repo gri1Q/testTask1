@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
- * @property string $id                          Уникальный идентификатор пользователя.
+ * @property-read  string $id                          Уникальный идентификатор пользователя.
  * @property string $name                       Имя пользователя.
  *
  * @property Carbon|null $created_at            Дата создания записи.

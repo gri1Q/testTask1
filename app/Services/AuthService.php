@@ -70,4 +70,15 @@ class AuthService
 
         return new GenUserDTO($user->id, $user->name);
     }
+
+    /**
+     * ПРоверка существования пользователя.
+     *
+     * @param int $userID
+     * @return bool
+     */
+    public function userIsExist(int $userID): bool
+    {
+       return $this->userRepository->isExist($userID);
+    }
 }

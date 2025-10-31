@@ -18,7 +18,6 @@
  */
 
 
-use Generated\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -26,7 +25,7 @@ use Illuminate\Support\Facades\Route;
  * Summary: Вход пользователя (Sanctum SPA)
  * Notes: Аутентифицирует существующего пользователя и устанавливает cookie-сессию.
  */
-Route::POST('/api/auth/login', [AuthController::class, 'loginUser'])
+Route::POST('/api/auth/login', [\Generated\Http\Controllers\AuthController::class, 'loginUser'])
     ->middleware(
         'web'
     )
@@ -37,6 +36,24 @@ Route::POST('/api/auth/login', [AuthController::class, 'loginUser'])
  * Summary: Регистрация нового пользователя (Sanctum SPA)
  * Notes: Создаёт учётную запись и аутентифицирует пользователя сессией.
  */
-Route::POST('/api/auth/users', [AuthController::class, 'registerUser'])
+Route::POST('/api/auth/users', [\Generated\Http\Controllers\AuthController::class, 'registerUser'])
+->name('');
+
+/**
+ * POST deposit
+ * Summary: Пополнение баланса пользователя
+ * Notes: Зачисление средств на баланс пользователя.
+ */
+Route::POST('/api/deposit', [\Generated\Http\Controllers\BalanceController::class, 'deposit'])
+    ->middleware(['web','auth:sanctum'])
+->name('');
+
+/**
+ * GET getBalance
+ * Summary: Баланс пользователя.
+ * Notes: Получить баланс пользователя.
+ */
+Route::GET('/api/balance/{userID}', [\Generated\Http\Controllers\BalanceController::class, 'getBalance'])
+    ->middleware(['web','auth:sanctum'])
 ->name('');
 

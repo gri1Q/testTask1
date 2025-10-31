@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Exceptions\InvalidCredentialsException;
 use App\Http\Controllers\Controller;
 use App\Services\AuthService;
+use App\Services\BalanceService;
 use Exception;
 use Generated\DTO\Error;
 use Generated\DTO\LoginUser;
@@ -24,7 +25,7 @@ use Throwable;
 
 class AuthController extends Controller implements AuthApiInterface
 {
-    public function __construct(private AuthService $authService)
+    public function __construct(private AuthService $authService, private BalanceService $balanceService)
     {
     }
 
@@ -52,6 +53,7 @@ class AuthController extends Controller implements AuthApiInterface
 
         try {
             $user = $this->authService->register($registerUser);
+            $this->balanceService->createBalanceForUser($user->id);
         } catch (Exception $e) {
             report($e);
             return new Error("Что-то пошло не так");
@@ -88,10 +90,11 @@ class AuthController extends Controller implements AuthApiInterface
             return new NoContent200('success');
         } catch (InvalidCredentialsException $e) {
             return new Error($e->getMessage());
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             report($e);
 
-            return new Error("Что-то пошло не так при логине");
+            return new Error($e->getMessage());
+//            return new Error("Что-то пошло не так при логине");
         }
     }
 

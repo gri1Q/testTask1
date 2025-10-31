@@ -25,4 +25,12 @@ interface UserRepositoryInterface
      */
     public function findByName(string $name): User;
 
+    /**
+     * Существует ли пользователь.
+     *
+     * @param int $id
+     * @return bool
+     */
+    public function isExist(int $id): bool;
+
 }

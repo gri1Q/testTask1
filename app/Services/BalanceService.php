@@ -26,32 +26,30 @@ class BalanceService
     /**
      * Пополнение баланса пользователя.
      *
-     * @param int $userId
+     * @param int $userID
      * @param float $amount
-     * @param string $comment
      * @return DepositResponseDTO
      * @throws Throwable
      */
-    public function deposit(int $userId, float $amount, string $comment): DepositResponseDTO
+    public function deposit(int $userID, float $amount): DepositResponseDTO
     {
         DB::beginTransaction();
         try {
-            $this->ensureUserExists($userId);
-
-            $balance = $this->balanceRepository->getByUserIDWithLock($userId);
+            $balance = $this->balanceRepository->getByUserIDWithLock($userID);
             $balance->amount += $amount;
             $this->balanceRepository->updateBalance($balance);
 
             $createDepositTransactionResponseDTO = $this->transactionService
-                ->createDepositTransaction($userId, $amount, $comment);
+                ->createDepositTransaction($userID, $amount);
 
             DB::commit();
         } catch (Throwable $e) {
             DB::rollBack();
             throw $e;
         }
+
         return new DepositResponseDTO(
-            $userId,
+            $userID,
             $balance->amount,
             $amount,
             'Баланс успешно пополнен',
@@ -62,19 +60,18 @@ class BalanceService
     /**
      * Списание средств с баланса пользователя.
      *
-     * @param int $userId
+     * @param int $userID
      * @param float $amount
      * @param string $comment
+     * @return WithdrawResponseDTO
      * @throws InsufficientFundsException
      * @throws Throwable
      */
-    public function withdraw(int $userId, float $amount, string $comment): WithdrawResponseDTO
+    public function withdraw(int $userID, float $amount, string $comment): WithdrawResponseDTO
     {
         DB::beginTransaction();
         try {
-            $this->ensureUserExists($userId);
-
-            $balance = $this->balanceRepository->getByUserIDWithLock($userId);
+            $balance = $this->balanceRepository->getByUserIDWithLock($userID);
 
             if ($balance->amount < $amount) {
                 throw new InsufficientFundsException(
@@ -86,7 +83,7 @@ class BalanceService
             $this->balanceRepository->updateBalance($balance);
 
             $createWithdrawTransactionResponseDTO = $this->transactionService
-                ->createWithdrawTransaction($userId, $amount, $comment);
+                ->createWithdrawTransaction($userID, $amount, $comment);
 
             DB::commit();
         } catch (Throwable $e) {
@@ -94,7 +91,7 @@ class BalanceService
             throw $e;
         }
         return new WithdrawResponseDTO(
-            $userId,
+            $userID,
             $balance->amount,
             $amount,
             'Средства успешно списаны',
@@ -105,24 +102,23 @@ class BalanceService
     /**
      * Перевод средств между пользователями.
      *
-     * @param int $fromUserId
-     * @param int $toUserId
+     * @param int $fromUserID
+     * @param int $toUserID
      * @param float $amount
      * @param string $comment
      * @return TransferResponseDTO
      * @throws InsufficientFundsException
      * @throws Throwable
      */
-    public function transfer(int $fromUserId, int $toUserId, float $amount, string $comment): TransferResponseDTO
+    public function transfer(int $fromUserID, int $toUserID, float $amount, string $comment): TransferResponseDTO
     {
         DB::beginTransaction();
         try {
-            $this->ensureUserExists($fromUserId);
-            $this->ensureUserExists($toUserId);
+            $this->ensureUserExists($toUserID);
 
             // Получаем балансы с блокировкой
-            $fromBalance = $this->balanceRepository->getByUserIDWithLock($fromUserId);
-            $toBalance = $this->balanceRepository->getByUserIDWithLock($toUserId);
+            $fromBalance = $this->balanceRepository->getByUserIDWithLock($fromUserID);
+            $toBalance = $this->balanceRepository->getByUserIDWithLock($toUserID);
 
             if ($fromBalance->amount < $amount) {
                 throw new InsufficientFundsException();
@@ -130,7 +126,7 @@ class BalanceService
 
             // Создаем перевод и транзакции
             $createTransferResponseDTO = $this->transactionService
-                ->createTransfer($fromUserId, $toUserId, $amount, $comment);
+                ->createTransfer($fromUserID, $toUserID, $amount, $comment);
 
             // Обновляем балансы
             $fromBalance->amount -= $amount;
@@ -145,8 +141,8 @@ class BalanceService
             throw $e;
         }
         return new TransferResponseDTO(
-            $fromUserId,
-            $toUserId,
+            $fromUserID,
+            $toUserID,
             $fromBalance->amount,
             $toBalance->amount,
             $amount,
@@ -158,18 +154,15 @@ class BalanceService
     /**
      * Получение текущего баланса пользователя.
      *
-     * @param int $userId
+     * @param int $userID
      * @return BalanceResponseDTO
      */
-    public function getBalance(int $userId): BalanceResponseDTO
+    public function getBalance(int $userID): BalanceResponseDTO
     {
-        $this->ensureUserExists($userId);
-
-
-        $balance = $this->balanceRepository->getByUserID($userId);
+        $balance = $this->balanceRepository->getByUserID($userID);
 
         return new BalanceResponseDTO(
-            userId: $balance->user_id,
+            userID: $balance->user_id,
             balance: $balance->amount
         );
     }
@@ -177,25 +170,26 @@ class BalanceService
     /**
      * Получение истории транзакций пользователя.
      *
-     * @param int $userId
+     * @param int $userID
      * @return Collection
+     * @throws UserNotFoundException
      */
-    public function getTransactionHistory(int $userId): Collection
+    public function getTransactionHistory(int $userID): Collection
     {
-        $this->ensureUserExists($userId);
-        return $this->transactionService->getUserTransactionHistory($userId);
+        $this->ensureUserExists($userID);
+        return $this->transactionService->getUserTransactionHistory($userID);
     }
 
     /**
      * Создание баланса для нового пользователя.
      *
-     * @param int $userId
+     * @param int $userID
      * @throws Throwable
      */
-    public function createBalanceForUser(int $userId): void
+    public function createBalanceForUser(int $userID): void
     {
         $balance = new Balance;
-        $balance->user_id = $userId;
+        $balance->user_id = $userID;
         $balance->amount = 0.0;
         $this->balanceRepository->createForUser($balance);
     }
@@ -203,9 +197,9 @@ class BalanceService
     /**
      * Проверка существования пользователя
      */
-    private function ensureUserExists(int $userId): void
+    private function ensureUserExists(int $userID): void
     {
-        if (!$this->authService->exists($userId)) {
+        if (!$this->authService->userIsExist($userID)) {
             throw new UserNotFoundException();
         }
     }

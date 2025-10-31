@@ -33,4 +33,15 @@ class UserRepository implements UserRepositoryInterface
     {
         return User::query()->where('name', $name)->firstOrFail();
     }
+
+    /**
+     * Существует ли пользователь.
+     *
+     * @param int $id
+     * @return bool
+     */
+    public function isExist(int $id): bool
+    {
+        return User::query()->where('id', $id)->exists();
+    }
 }
