@@ -8,6 +8,7 @@ DTO/NoContent200.php
 DTO/NoContent401.php
 DTO/NoContent403.php
 DTO/NoContent404.php
+DTO/NoContent409.php
 DTO/NoContent419.php
 DTO/NoContent429.php
 DTO/RegisterResponse.php
@@ -15,6 +16,8 @@ DTO/RegisterUser.php
 DTO/User.php
 DTO/ValidationError.php
 DTO/ValidationErrorItem.php
+DTO/WithdrawRequest.php
+DTO/WithdrawResponse.php
 Http/Controllers/AuthApiInterface.php
 Http/Controllers/AuthController.php
 Http/Controllers/BalanceApiInterface.php

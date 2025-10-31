@@ -69,13 +69,11 @@ class TransactionService
      *
      * @param int $userId
      * @param float $amount
-     * @param string|null $comment
      * @return CreateWithdrawTransactionResponseDTO
      */
     public function createWithdrawTransaction(
         int $userId,
         float $amount,
-        ?string $comment = null
     ): CreateWithdrawTransactionResponseDTO {
         $transaction = $this->createTransaction([
             'user_id' => $userId,
@@ -88,7 +86,6 @@ class TransactionService
             $transaction->user_id,
             $transaction->type,
             $transaction->amount,
-            $transaction->$comment,
             $transaction->created_at->toDateString()
         );
     }

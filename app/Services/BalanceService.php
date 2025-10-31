@@ -62,12 +62,11 @@ class BalanceService
      *
      * @param int $userID
      * @param float $amount
-     * @param string $comment
      * @return WithdrawResponseDTO
      * @throws InsufficientFundsException
      * @throws Throwable
      */
-    public function withdraw(int $userID, float $amount, string $comment): WithdrawResponseDTO
+    public function withdraw(int $userID, float $amount): WithdrawResponseDTO
     {
         DB::beginTransaction();
         try {
@@ -83,7 +82,7 @@ class BalanceService
             $this->balanceRepository->updateBalance($balance);
 
             $createWithdrawTransactionResponseDTO = $this->transactionService
-                ->createWithdrawTransaction($userID, $amount, $comment);
+                ->createWithdrawTransaction($userID, $amount);
 
             DB::commit();
         } catch (Throwable $e) {

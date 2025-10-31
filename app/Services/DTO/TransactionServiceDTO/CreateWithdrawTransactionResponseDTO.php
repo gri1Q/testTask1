@@ -11,7 +11,6 @@ namespace App\Services\DTO\TransactionServiceDTO;
  * @property int $userID
  * @property string $type
  * @property float $amount
- * @property string|null $comment
  * @property string $createdAt
  */
 readonly class CreateWithdrawTransactionResponseDTO
@@ -21,7 +20,6 @@ readonly class CreateWithdrawTransactionResponseDTO
         public int $userID,
         public string $type,
         public float $amount,
-        public ?string $comment,
         public string $createdAt
     ) {
     }
@@ -36,7 +34,6 @@ readonly class CreateWithdrawTransactionResponseDTO
             'userID' => $this->userID,
             'type' => $this->type,
             'amount' => $this->amount,
-            'comment' => $this->comment,
             'createdAt' => $this->createdAt,
         ];
     }

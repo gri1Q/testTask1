@@ -59,4 +59,23 @@ interface BalanceApiInterface {
         \Generated\DTO\Error
     ;
 
+
+    /**
+     * Operation withdraw
+     *
+     * Списание средств с баланса пользователя
+     * @param \Generated\DTO\WithdrawRequest $withdrawRequest
+     * @return \Generated\DTO\WithdrawResponse | \Generated\DTO\ValidationError | \Generated\DTO\NoContent401 | \Generated\DTO\NoContent409 | \Generated\DTO\NoContent419 | \Generated\DTO\Error
+     */
+    public function withdraw(
+            \Generated\DTO\WithdrawRequest $withdrawRequest,
+    ):
+        \Generated\DTO\WithdrawResponse | 
+        \Generated\DTO\ValidationError | 
+        \Generated\DTO\NoContent401 | 
+        \Generated\DTO\NoContent409 | 
+        \Generated\DTO\NoContent419 | 
+        \Generated\DTO\Error
+    ;
+
 }

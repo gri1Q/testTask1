@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\InsufficientFundsException;
 use App\Services\BalanceService;
 use Generated\DTO\BalanceResponse;
 use Generated\DTO\DepositRequest;
@@ -13,6 +14,8 @@ use Generated\DTO\NoContent404;
 use Generated\DTO\NoContent419;
 use Generated\DTO\ValidationError;
 use Generated\DTO\ValidationErrorItem;
+use Generated\DTO\WithdrawRequest;
+use Generated\DTO\WithdrawResponse;
 use Generated\Http\Controllers\BalanceApiInterface;
 use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Support\Facades\Auth;
@@ -82,8 +85,7 @@ class BalanceController extends Controller implements BalanceApiInterface
             );
         } catch (Throwable $e) {
             report($e);
-            return new Error($e->getMessage());
-//            return new Error("Что то пошло не так");
+            return new Error("Что то пошло не так");
         }
 
         return new DepositResponse(
@@ -94,6 +96,53 @@ class BalanceController extends Controller implements BalanceApiInterface
         );
     }
 
+
+    public function withdraw(WithdrawRequest $withdrawRequest,
+    ): WithdrawResponse|ValidationError|NoContent401|NoContent419|Error {
+        $ve = $this->validateOrNull([
+            'amount' => $withdrawRequest->amount,
+            'comment' => $withdrawRequest->comment ?? '',
+        ], [
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'comment' => ['nullable', 'string', 'max:255'],
+        ], [
+            'amount.required' => 'Сумма списания обязательна',
+            'amount.numeric' => 'Сумма должна быть числом',
+            'amount.min' => 'Минимальная сумма списания: 0.01',
+            'comment.string' => 'Комментарий должен быть строкой',
+            'comment.max' => 'Комментарий не должен превышать 255 символов',
+        ]);
+
+        if ($ve !== null) {
+            return $ve;
+        }
+
+        if (!Auth::check()) {
+            return new NoContent401();
+        }
+
+        try {
+            $userId = Auth::id();
+
+            $withdrawDTO = $this->balanceService->withdraw(
+                $userId,
+                $withdrawRequest->amount,
+            );
+        } catch (InsufficientFundsException $e) {
+
+
+        } catch (Throwable $e) {
+            report($e);
+            return new Error("Что то пошло не так");
+        }
+
+        return new WithdrawResponse(
+            $withdrawDTO->userID,
+            $withdrawDTO->newBalance,
+            $withdrawDTO->amount,
+            $withdrawDTO->message
+        );
+    }
 
     /**
      * Валидирует данные и возвращает ошибку или null.
@@ -130,4 +179,5 @@ class BalanceController extends Controller implements BalanceApiInterface
 
         return new ValidationError(null, $errorItems);
     }
+
 }

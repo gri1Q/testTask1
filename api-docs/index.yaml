@@ -6,6 +6,55 @@ servers:
   - url: http://127.0.0.1:8000/api
 
 paths:
+  /withdraw:
+    post:
+      tags: [ Balance ]
+      operationId: withdraw
+      summary: Списание средств с баланса пользователя
+      description: >
+        Списание средств с баланса пользователя.
+      requestBody:
+        required: true
+        description: Данные для списания средств
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithdrawRequest'
+            examples:
+              valid:
+                summary: Корректный пример
+                value:
+                  amount: 100.00
+                  comment: "Оплата услуги"
+      responses:
+        '200':
+          description: OK — средства успешно списаны
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WithdrawResponse'
+        '400':
+          description: Validation Error — входные данные не прошли валидацию.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '401':
+          description: Unauthorized — пользователь не аутентифицирован.
+        '409':
+          description: Conflict — не достаточно средств .
+        '419':
+          description: CSRF Token Mismatch
+        '500':
+          description: Internal Server Error — непредвиденная ошибка на сервере.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - cookieAuth: []
+          xsrfHeader: []
+
   /deposit:
     post:
       tags: [ Balance ]
@@ -273,6 +322,45 @@ components:
         message:
           type: string
           example: "Баланс успешно пополнен"
+
+    WithdrawRequest:
+      type: object
+      description: Запрос на списание средств
+      required: [ amount ]
+      properties:
+        amount:
+          type: number
+          format: float
+          minimum: 0.01
+          description: Сумма списания
+          example: 100.00
+        comment:
+          type: string
+          maxLength: 255
+          description: Комментарий к списанию
+          example: "Оплата услуги"
+
+    WithdrawResponse:
+      type: object
+      description: Ответ после успешного списания
+      required: [ user_id, balance, amount, message ]
+      properties:
+        user_id:
+          type: integer
+          example: 1
+        balance:
+          type: number
+          format: float
+          description: Текущий баланс после операции
+          example: 400.00
+        amount:
+          type: number
+          format: float
+          description: Сумма списания
+          example: 100.00
+        message:
+          type: string
+          example: "Средства успешно списаны"
 
     BalanceResponse:
       type: object
