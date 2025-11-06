@@ -18,6 +18,10 @@ return new class extends Migration
             $table->decimal('amount', 15, 2);
             $table->foreignId('transfer_id')->nullable()->constrained('transfers')->onDelete('cascade');
             $table->timestamps();
+            $table->index('user_id');
+            $table->index(['user_id', 'type']);
+            $table->index('transfer_id');
+            $table->index('type');
         });
     }
 

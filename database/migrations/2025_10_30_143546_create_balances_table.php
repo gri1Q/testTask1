@@ -16,8 +16,6 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade')->unique();
             $table->decimal('amount', 15, 2)->default(0);
             $table->timestamps();
-
-            $table->index('user_id');
         });
     }
 
