@@ -225,7 +225,6 @@ class BalanceController extends Controller implements BalanceApiInterface
             return new NoContent404("Пользователь-получатель не найден");
         } catch (Throwable $e) {
             report($e);
-            return new Error($e->getMessage());
             return new Error("Что то пошло не так");
         }
 
