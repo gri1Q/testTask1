@@ -120,7 +120,6 @@ class BalanceService
             $toBalance = $this->balanceRepository->getByUserIDWithLock($toUserID);
 
             if ($fromBalance->amount < $amount) {
-//                dd($fromBalance->amount,$amount);
                 throw new InsufficientFundsException();
             }
 
