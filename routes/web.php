@@ -1,8 +1,16 @@
 <?php
 
+use App\Metricks\MetricsExporter;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
+Route::get('/phpinfo', function () {
+    dd(get_loaded_extensions());
+});
+Route::get('/metrics', function (MetricsExporter $exporter) {
+    return response($exporter->render())
+        ->header('Content-Type', \Prometheus\RenderTextFormat::MIME_TYPE);
+});
 
 Route::view('/docs', 'swagger'); // UI на /docs
 

@@ -11,8 +11,9 @@ class TestController extends Controller
 {
     public function get()
     {
-        dd(
-            Post::orderByDesc('id')->cursorPaginate(50)
-        );
+//        dd(
+        return Post::orderByDesc('created_at')->cursorPaginate(50);
+
+//        );
     }
 }
