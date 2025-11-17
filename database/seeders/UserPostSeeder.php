@@ -2,30 +2,23 @@
 
 namespace Database\Seeders;
 
-ini_set('memory_limit', '1024M');
-
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class DatabaseSeeder extends Seeder
+class UserPostSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
-     * Seed the application's database.
+     * Run the database seeds.
      */
     public function run(): void
     {
-        $userCount = 1000000;   // 1 миллион пользователей
-        $postCount = 5000000;   // 5 миллионов постов
-        $batchSize = 10000;      // размер батча
+        $userCount = 1000000;    // 1 миллион пользователей
+        $postCount = 5000000;    // 5 миллионов постов
+        $batchSize = 5000;       // вставка по 5000 записей за раз
         $now = now();
 
-        echo "Starting user insertion..." . PHP_EOL;
-
-        // --- Вставка пользователей батчами ---
+        // --- 1) Вставка пользователей ---
         for ($i = 0; $i < $userCount; $i += $batchSize) {
             $rows = [];
             $limit = min($batchSize, $userCount - $i);
@@ -40,20 +33,19 @@ class DatabaseSeeder extends Seeder
             echo "Inserted users: " . ($i + $limit) . PHP_EOL;
         }
 
-        echo "User insertion completed." . PHP_EOL;
+        // Получаем все user_id для постов
+        $userIds = DB::table('users')->pluck('id')->toArray();
+        $userTotal = count($userIds);
 
-        echo "Starting post insertion..." . PHP_EOL;
-
-        // --- Вставка постов батчами без загрузки всех user_id ---
+        // --- 2) Вставка постов ---
         for ($i = 0; $i < $postCount; $i += $batchSize) {
             $rows = [];
             $limit = min($batchSize, $postCount - $i);
             for ($j = 0; $j < $limit; $j++) {
-                $userId = rand(1,1000000); // вычисляем ID по формуле
                 $rows[] = [
                     'title' => 'Post_' . uniqid() . '_' . ($i + $j),
                     'body' => 'This is the body of post ' . ($i + $j),
-                    'user_id' => $userId,
+                    'user_id' => $userIds[($i + $j) % $userTotal],
                     'created_at' => $now,
                     'updated_at' => $now,
                 ];
@@ -61,7 +53,5 @@ class DatabaseSeeder extends Seeder
             DB::table('posts')->insert($rows);
             echo "Inserted posts: " . ($i + $limit) . PHP_EOL;
         }
-
-        echo "Post insertion completed." . PHP_EOL;
     }
 }

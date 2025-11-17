@@ -27,6 +27,9 @@ RUN wget http://nodejs.org/dist/v20.13.1/node-v20.13.1-linux-x64.tar.gz \
 RUN docker-php-ext-install bcmath pdo pdo_pgsql pgsql gd zip \
     && docker-php-ext-enable pgsql
 
+# Установка расширения Redis
+RUN pecl install redis && docker-php-ext-enable redis
+
 # Install xdebug
 RUN pecl install xdebug \
     && docker-php-ext-enable xdebug
